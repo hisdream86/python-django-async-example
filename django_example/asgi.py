@@ -11,6 +11,7 @@ import os
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'django_example.settings')
+stage = os.getenv("STAGE", "local").lower()
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", f"django_example.settings.{stage}")
 
 application = get_asgi_application()

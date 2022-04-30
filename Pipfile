@@ -9,6 +9,7 @@ djangorestframework = "==3.13.1"
 uvicorn = "==0.17.6"
 aiohttp = "==3.8.1"
 ujson = "==5.2.0"
+django-cors-headers = "==3.11.0"
 
 [dev-packages]
 pytest = "*"
