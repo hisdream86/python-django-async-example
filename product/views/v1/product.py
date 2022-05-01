@@ -14,7 +14,7 @@ class ProductsView(AsyncAPIView):
         data = ujson.loads(request.body)
         req = serializers.ProductCreateRequestSerializer(data=data)
         req.is_valid(raise_exception=True)
-        product = await sync_to_async(Product.objects.create)(**req.data)
+        product = await sync_to_async(Product.objects.create_with_validation)(**req.data)
         return APIResponse(data=serializers.ProductSerializer(product).data)
 
 
