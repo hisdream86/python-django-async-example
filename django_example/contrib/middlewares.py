@@ -1,9 +1,12 @@
 import uuid
 import time
 
-from typing import Callable
+from http import HTTPStatus
+from typing import Any, Callable
 from django.http import HttpRequest
 from django.http import JsonResponse
+
+from django_example.contrib.errors import APIError
 
 
 class APIMiddleware:
@@ -21,9 +24,20 @@ class APIMiddleware:
 
         return response
 
-    def process_exception(self, request: HttpRequest, exception: Exception):
+    def process_exception(self, request: HttpRequest, exception: Any):
+        if isinstance(exception, APIError):
+            status = exception.status
+            code = exception.code
+            error = exception.msg
+        else:
+            status = HTTPStatus.INTERNAL_SERVER_ERROR
+            code = APIError.ErrorCode.UNDEFINED
+            error = str(exception)
+
         return JsonResponse(
             data={
-                "message": str(exception),
-            }
+                "error": error,
+                "code": code,
+            },
+            status=status,
         )
