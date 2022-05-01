@@ -4,7 +4,7 @@ from django.http import HttpRequest, JsonResponse
 from product.models import Product
 from product import serializers
 
-from middlewares.views import AsyncAPIView
+from django_example.contrib.views import AsyncAPIView
 from asgiref.sync import sync_to_async
 
 
