@@ -1,11 +1,12 @@
 import ujson
 
-from django.http import HttpRequest, JsonResponse
+from asgiref.sync import sync_to_async
+from django.http import HttpRequest
 from product.models import Product
 from product import serializers
 
 from django_example.contrib.views import AsyncAPIView
-from asgiref.sync import sync_to_async
+from django_example.contrib.response import APIResponse
 
 
 class ProductsView(AsyncAPIView):
@@ -14,11 +15,11 @@ class ProductsView(AsyncAPIView):
         req = serializers.ProductCreateRequestSerializer(data=data)
         req.is_valid(raise_exception=True)
         product = await sync_to_async(Product.objects.create)(**req.data)
-        return JsonResponse(data=serializers.ProductSerializer(product).data)
+        return APIResponse(data=serializers.ProductSerializer(product).data)
 
 
 class ProductView(AsyncAPIView):
     async def get(self, request: HttpRequest, pk: int):
         product = await sync_to_async(Product.objects.get)(id=pk)
         serializer = serializers.ProductSerializer(product)
-        return JsonResponse(data=serializer.data)
+        return APIResponse(data=serializer.data)
