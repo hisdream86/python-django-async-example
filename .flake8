@@ -4,4 +4,6 @@ max-line-length=120
 exclude = 
     .git,
     __pycache__,
-    django_example/settings/*
+    django_example/settings/*,
+    product/views/__init__.py
+    product/serializers/__init__.py
