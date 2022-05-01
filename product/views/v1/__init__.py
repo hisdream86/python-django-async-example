@@ -1,3 +1,3 @@
-from .product import ProductViewSet
+from .product import ProductsView, ProductView
 
-__all__ = ["ProductViewSet"]
+__all__ = ["ProductsView", "ProductView"]

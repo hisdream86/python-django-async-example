@@ -1,23 +1,24 @@
-from rest_framework.viewsets import ViewSet
-from rest_framework.request import Request
-from rest_framework.response import Response
+import ujson
 
+from django.http import HttpRequest, JsonResponse
 from product.models import Product
 from product import serializers
 
+from middlewares.views import AsyncAPIView
+from asgiref.sync import sync_to_async
 
-class ProductViewSet(ViewSet):
-    """
-    A ViewSet for implementing APIs to manage products.
-    """
 
-    def create(self, request: Request):
-        req = serializers.ProductCreateRequestSerializer(data=request.data)
+class ProductsView(AsyncAPIView):
+    async def post(self, request: HttpRequest):
+        data = ujson.loads(request.body)
+        req = serializers.ProductCreateRequestSerializer(data=data)
         req.is_valid(raise_exception=True)
-        product = Product.objects.create(**req.data)
-        return Response(data=serializers.ProductSerializer(product).data)
+        product = await sync_to_async(Product.objects.create)(**req.data)
+        return JsonResponse(data=serializers.ProductSerializer(product).data)
 
-    def retrieve(self, request: Request, pk: int = None):
-        product = Product.objects.get(id=pk)
+
+class ProductView(AsyncAPIView):
+    async def get(self, request: HttpRequest, pk: int):
+        product = await sync_to_async(Product.objects.get)(id=pk)
         serializer = serializers.ProductSerializer(product)
-        return Response(data=serializer.data)
+        return JsonResponse(data=serializer.data)
