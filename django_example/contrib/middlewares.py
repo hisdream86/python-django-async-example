@@ -1,5 +1,6 @@
 import uuid
 import time
+import traceback
 
 from http import HTTPStatus
 from typing import Any, Callable
@@ -7,6 +8,7 @@ from django.http import HttpRequest
 from django.http import JsonResponse
 
 from django_example.contrib.errors import APIError
+from django.conf import settings
 
 
 class APIMiddleware:
@@ -34,10 +36,7 @@ class APIMiddleware:
             code = APIError.ErrorCode.UNDEFINED
             error = str(exception)
 
-        return JsonResponse(
-            data={
-                "error": error,
-                "code": code,
-            },
-            status=status,
-        )
+        if status > 500 and settings.DEBUG:
+            traceback.print_exc()
+
+        return JsonResponse(data={"error": error, "code": code}, status=status)
