@@ -1,32 +1,38 @@
 import uuid
 import time
 import traceback
+import ujson
+
 
 from http import HTTPStatus
-from typing import Any, Callable
-from django.http import HttpRequest
-from django.http import JsonResponse
-
-from django_example.contrib.errors import APIError
+from typing import Optional
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.conf import settings
 
+from django_example.contrib.errors import APIError, BadRequest
+from django.utils.deprecation import MiddlewareMixin
 
-class APIMiddleware:
-    def __init__(self, get_response: Callable):
-        self.get_response = get_response
 
-    def __call__(self, request: HttpRequest):
-        request.request_id = str(uuid.uuid4())
+class APIMiddleware(MiddlewareMixin):
+    def process_request(self, request: HttpRequest) -> Optional[HttpResponse]:
         request.start = time.time()
+        request.request_id = str(uuid.uuid4())
 
-        response = self.get_response(request)
+        try:
+            if request.body and request.content_type == "application/json":
+                request.data = ujson.loads(request.body)
+            else:
+                request.data = {}
+        except ujson.JSONDecodeError:
+            raw_body = request.body.decode("utf-8")
+            return self.process_exception(request, BadRequest(f"Invalid JSON string '{raw_body}'"))
 
-        response["request-id"] = request.request_id
+    def process_response(self, request: HttpRequest, response: HttpResponse) -> HttpResponse:
         request.end = time.time()
-
+        response["request-id"] = request.request_id
         return response
 
-    def process_exception(self, request: HttpRequest, exception: Any):
+    def process_exception(self, request: HttpRequest, exception: Exception) -> JsonResponse:
         if isinstance(exception, APIError):
             status = exception.status
             code = exception.code

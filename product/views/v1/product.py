@@ -1,5 +1,3 @@
-import ujson
-
 from asgiref.sync import sync_to_async
 from django.http import HttpRequest
 from product.models import Product
@@ -11,8 +9,7 @@ from django_example.contrib.response import APIResponse
 
 class ProductsView(AsyncAPIView):
     async def post(self, request: HttpRequest):
-        data = ujson.loads(request.body)
-        req = serializers.ProductCreateRequestSerializer(data=data)
+        req = serializers.ProductCreateRequestSerializer(data=request.data)
         req.is_valid(raise_exception=True)
         product = await sync_to_async(Product.objects.create_with_validation)(**req.data)
         return APIResponse(data=serializers.ProductSerializer(product).data)
